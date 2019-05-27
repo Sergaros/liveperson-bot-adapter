@@ -208,5 +208,6 @@ export enum ElementTypes {
   TextBlock = "TextBlock",
   ImageSet = "ImageSet",
   Image = "Image",
-  Media = "Media"
+  Media = "Media",
+  MultiSelect = "Input.ChoiceSet",
 }

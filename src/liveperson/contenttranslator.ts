@@ -113,19 +113,13 @@ export class ContentTranslator {
       role: RoleTypes.User
     };
 
-    const message: any = {
+    let turnContext: TurnContext = new TurnContext(livePersonBotAdapter, {
       channelData: channelAccount,
       conversation: conversationAccount,
       channelId: "liveperson",
       text: contentEvent.message,
       type: "message"
-    }
-
-    if(Array.isArray(contentEvent.metadata) && contentEvent.metadata[0] && contentEvent.metadata[0].id){
-      message.id = contentEvent.metadata[0].id;
-    }
-
-    let turnContext: TurnContext = new TurnContext(livePersonBotAdapter, message);
+    });
 
     return turnContext;
   }
@@ -436,6 +430,35 @@ export class ContentTranslator {
           new RichContentDefinitions.Image(poster, "image tooltip")
         );
       }
+    } else if (type === RichContentDefinitions.ElementTypes.MultiSelect) {
+      const { id, choices, isMultiSelect, value } = botFrameworkItem;
+
+      const preselectedIds = value ? value.split(",") : [];
+
+      choices.forEach(choise => {
+        let buttonAction = new RichContentDefinitions.PostBackButtonAction(
+          choise.title
+        );
+
+        console.log('preselectedIds - ',preselectedIds);
+        const isSelected = preselectedIds.findIndex(el => choise.value === el) !== -1;
+
+        elements.push(
+          new RichContentDefinitions.Button(
+            choise.title,
+            choise.title,
+            [buttonAction],
+            [
+              {
+                id: `checkbox;${id};${isMultiSelect ? true : false};${
+                  choise.value
+                };${isSelected}`,
+                type: "ExternalId"
+              }
+            ]
+          )
+        );
+      });
     }
   }
 
