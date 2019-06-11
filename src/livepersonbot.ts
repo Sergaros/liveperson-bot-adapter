@@ -7,6 +7,7 @@ import {
 } from "botbuilder";
 import { LivePersonBotAdapter } from "./liveperson/livepersonbotadapter";
 
+import { default as cardContent } from "./adaptiveCard";
 const TURN_COUNTER_PROPERTY: string = "turnCounterProperty";
 
 export class LivePersonBot {
@@ -44,54 +45,77 @@ export class LivePersonBot {
         "turnContext.activity - ",
         JSON.stringify(turnContext.activity)
       );
-      // Handle message activity type. User's responses via text or speech or card interactions flow back to the bot as Message activity.
-      // Message activities may contain text, speech, interactive cards, and binary or unknown attachments.
-      // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
+
       if (turnContext.activity.type === ActivityTypes.Message) {
-        // read from state.
-        let count = await this.countProperty.get(turnContext);
-        count = count === undefined ? 1 : ++count;
+        // let reply: any = `${count}: You said ${viaString}: "${
+        //   turnContext.activity.text
+        // }"`;
 
-        let reply: any = `${count}: You said ${viaString}: "${
-          turnContext.activity.text
-        }"`;
+        const index = "My choise is:";
+        if (turnContext.activity.text.startsWith(index)) {
+          const result = turnContext.activity.text
+            .slice(index.length)
+            .trim()
+            .split(",");
 
-        if (turnContext.activity.text === "card") {
-          const buttons = [
-            {
-              type: ActionTypes.ImBack,
-              title: "1. Inline Attachment",
-              value: "1",
-              id: "button_id_1"
-            },
-            {
-              type: ActionTypes.ImBack,
-              title: "2. Internet Attachment",
-              value: "2",
-              id: "button_id_2"
-            },
-            {
-              type: ActionTypes.ImBack,
-              title: "3. Uploaded Attachment",
-              value: "3",
-              id: "button_id_3"
-            }
-          ];
+          console.log("result - ", result);
+          let text: any = `Your choise is:
+            ${result}
+           `;
 
-          const card = CardFactory.heroCard("Text", undefined, buttons, {
-            text:
-              "You can upload an image or select one of the following choices."
+          await turnContext.sendActivity({
+            type: ActivityTypes.Message,
+            text: text
           });
-
-          reply = { type: ActivityTypes.Message, attachments: [card] };
         }
 
-        await turnContext.sendActivity(reply);
+        if (turnContext.activity.text === "card") {
+          // const buttons = [
+          //   {
+          //     type: ActionTypes.ImBack,
+          //     title: "1. Inline Attachment",
+          //     value: "1",
+          //     id: "button_id_1"
+          //   },
+          //   {
+          //     type: ActionTypes.ImBack,
+          //     title: "2. Internet Attachment",
+          //     value: "2",
+          //     id: "button_id_2"
+          //   },
+          //   {
+          //     type: ActionTypes.ImBack,
+          //     title: "3. Uploaded Attachment",
+          //     value: "3",
+          //     id: "button_id_3"
+          //   },
+          // ];
 
-        // await turnContext.sendActivity(JSON.stringify(reply));
+          // const card = CardFactory.heroCard("checkbox_group", "", undefined, buttons);
 
-        // Increment and set turn counter.
-        // await this.countProperty.set(turnContext, count);
+          // let reply = { type: ActivityTypes.Message, attachments: [card] };
+          // await turnContext.sendActivity(reply);
+
+          // // submit
+          // const submit = [
+          //   {
+          //     type: ActionTypes.ImBack,
+          //     title: "Submit  ",
+          //     value: "Submit",
+          //     id: "submit_id_1"
+          //   }
+          // ];
+
+          // const cardSubmit = CardFactory.heroCard("Submit", undefined, submit);
+
+          // reply = { type: ActivityTypes.Message, attachments: [cardSubmit] };
+          // await turnContext.sendActivity(reply);
+
+          const card = CardFactory.adaptiveCard(cardContent);
+
+          const reply = { type: ActivityTypes.Message, attachments: [card] };
+          await turnContext.sendActivity(reply);
+        }
       } else {
         // Generic handler for all other activity types.
         await turnContext.sendActivity(

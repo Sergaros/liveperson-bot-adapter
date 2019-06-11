@@ -440,7 +440,6 @@ export class ContentTranslator {
           choise.title
         );
 
-        console.log('preselectedIds - ',preselectedIds);
         const isSelected = preselectedIds.findIndex(el => choise.value === el) !== -1;
 
         elements.push(

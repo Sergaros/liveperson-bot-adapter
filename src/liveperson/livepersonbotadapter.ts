@@ -206,14 +206,14 @@ export class LivePersonBotAdapter extends BotAdapter {
                     // demonstration of using the consumer profile calls
                     const consumerId = change.result.conversationDetails.participants.filter(p => p.role === 'CONSUMER')[0].id;
                     this.livePersonAgent.getUserProfile(consumerId, (e, profileResp) => {
-                        this.livePersonAgent.publishEvent({
-                            dialogId: change.result.convId,
-                            event: {
-                                type: 'ContentEvent',
-                                contentType: 'text/plain',
-                                message: `Just joined to conversation with ${JSON.stringify(profileResp)}`
-                            }
-                        });
+                        // this.livePersonAgent.publishEvent({
+                        //     dialogId: change.result.convId,
+                        //     event: {
+                        //         type: 'ContentEvent',
+                        //         contentType: 'text/plain',
+                        //         message: `Just joined to conversation with ${JSON.stringify(profileResp)}`
+                        //     }
+                        // });
                     });
                     this.livePersonAgent.subscribeMessagingEvents({dialogId: change.result.convId});
                 } else if (change.type === 'DELETE') {
@@ -262,7 +262,7 @@ export class LivePersonBotAdapter extends BotAdapter {
                 // Notify listener to process the received message and attach customerId from LivePerson to the message
                 this.livePersonAgent.getUserProfile(consumerId, (e, profileResp) => {
                     let customerId:string = "";
-					if(profileResp != undefined){
+					if(Array.isArray(profileResp)){
                         let ctmrInfo =  profileResp.filter(pr => pr.type == "ctmrinfo")[0];
                         customerId = ctmrInfo.info.customerId;
                     }
