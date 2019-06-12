@@ -88,6 +88,9 @@ const days = [
  * - https://developers.liveperson.com/messaging-agent-sdk-conversation-metadata-guide.html
  */
 export class ContentTranslator {
+
+  private isMultiSelect: boolean = false;
+
   /**
    * Translates the given content to a TurnContext instance, which the bot can interpret.
    *
@@ -174,6 +177,12 @@ export class ContentTranslator {
       body.forEach(item => {
         this.botFrameworkItemToLivePersonElement(item, elements);
       });
+
+      if(this.isMultiSelect) {
+        const leText = this.botFrameworkMessageToLivePersonMessage("multiselect");
+        elements = [new RichContentDefinitions.TextElement(leText, leText), ...elements];
+        this.isMultiSelect = false;
+      }
 
       // translate actions
       if (actions && actions.length) {
@@ -432,9 +441,10 @@ export class ContentTranslator {
       }
     } else if (type === RichContentDefinitions.ElementTypes.MultiSelect) {
       const { id, choices, isMultiSelect, value } = botFrameworkItem;
-
       const preselectedIds = value ? value.split(",") : [];
 
+      this.isMultiSelect = true;
+      
       choices.forEach(choise => {
         let buttonAction = new RichContentDefinitions.PostBackButtonAction(
           choise.title
@@ -523,6 +533,12 @@ export class ContentTranslator {
       body.forEach(item => {
         this.botFrameworkItemToLivePersonElement(item, elements);
       });
+
+      if(this.isMultiSelect) {
+        const leText = this.botFrameworkMessageToLivePersonMessage("multiselect");
+        elements = [new RichContentDefinitions.TextElement(leText, leText), ...elements];
+        this.isMultiSelect = false;
+      }
 
       // translate actions
       if (actions && actions.length) {

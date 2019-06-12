@@ -7,7 +7,8 @@ import {
 } from "botbuilder";
 import { LivePersonBotAdapter } from "./liveperson/livepersonbotadapter";
 
-import { default as cardContent } from "./adaptiveCard";
+import * as cardService from "./CardService";
+
 const TURN_COUNTER_PROPERTY: string = "turnCounterProperty";
 
 export class LivePersonBot {
@@ -111,7 +112,7 @@ export class LivePersonBot {
           // reply = { type: ActivityTypes.Message, attachments: [cardSubmit] };
           // await turnContext.sendActivity(reply);
 
-          const card = CardFactory.adaptiveCard(cardContent);
+          const card = CardFactory.adaptiveCard(cardService.get());
 
           const reply = { type: ActivityTypes.Message, attachments: [card] };
           await turnContext.sendActivity(reply);

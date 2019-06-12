@@ -18,14 +18,6 @@ export default {
               horizontalAlignment: "Center",
               height: "stretch",
               url:
-                "https://img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/RE2x0K8?ver=f836&q=90&m=6&h=270&w=270&b=%23FFFFFFFF&o=f&aim=true",
-              size: "Medium"
-            },
-            {
-              type: "Image",
-              horizontalAlignment: "Center",
-              height: "stretch",
-              url:
                 "https://img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/RE2wY7i?ver=79a0&q=90&m=6&h=270&w=270&b=%23FFFFFFFF&o=f&aim=true",
               size: "Medium"
             }
