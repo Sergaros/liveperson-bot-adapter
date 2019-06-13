@@ -14,11 +14,6 @@ server.listen(3131, () => {
   console.log(`Upload Card Server listen on port 3131`);
 });
 
-server.get(/\/?.*/, restify.plugins.serveStatic({
-  directory: './public',
-  default: 'index.html'
-}));
-
 server.post("/upload", (req, res) => {
   // console.log(req.params);
   console.log("upload card", req.body);
@@ -33,6 +28,11 @@ server.get("/reset", (req, res) => {
   cardService.reset();
   res.send({ result: true });
 });
+
+server.get(/\/?.*/, restify.plugins.serveStatic({
+  directory: './public',
+  default: 'index.html'
+}));
 
 // test
 // server.get("/echo/:name", function(req, res, next) {
