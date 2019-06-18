@@ -3,7 +3,8 @@ import {
   ActionTypes,
   TurnContext,
   ConversationState,
-  CardFactory
+  CardFactory,
+  MessageFactory
 } from "botbuilder";
 import { LivePersonBotAdapter } from "./liveperson/livepersonbotadapter";
 
@@ -52,23 +53,23 @@ export class LivePersonBot {
         //   turnContext.activity.text
         // }"`;
 
-        const index = "My choise is:";
-        if (turnContext.activity.text.startsWith(index)) {
-          const result = turnContext.activity.text
-            .slice(index.length)
-            .trim()
-            .split(",");
+        // const index = "My choise is:";
+        // if (turnContext.activity.text.startsWith(index)) {
+        //   const result = turnContext.activity.text
+        //     .slice(index.length)
+        //     .trim()
+        //     .split(",");
 
-          console.log("result - ", result);
-          let text: any = `Your choise is:
-            ${result}
-           `;
+        //   console.log("result - ", result);
+        //   let text: any = `Your choise is:
+        //     ${result}
+        //    `;
 
-          await turnContext.sendActivity({
-            type: ActivityTypes.Message,
-            text: text
-          });
-        }
+        //   await turnContext.sendActivity({
+        //     type: ActivityTypes.Message,
+        //     text: text
+        //   });
+        // }
 
         if (turnContext.activity.text === "card") {
           // const buttons = [
@@ -116,6 +117,14 @@ export class LivePersonBot {
 
           const reply = { type: ActivityTypes.Message, attachments: [card] };
           await turnContext.sendActivity(reply);
+
+          // send quick reply
+          await turnContext.sendActivity(MessageFactory.suggestedActions(['Red', 'Yellow', 'Blue'], 'What is the best color?'));
+        } else {
+          console.log('New message-------------------');
+          console.log(turnContext.activity.text);
+
+          const activity = turnContext.activity;
         }
       } else {
         // Generic handler for all other activity types.
