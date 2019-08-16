@@ -45,6 +45,16 @@ const getActionMetadata = (action: any): any => {
   return id ? [{ id, type: "ExternalId" }] : null;
 };
 
+/**
+ * Cut text to length n
+ * @param text inner text
+ * @param n maximum length
+ * @return short text
+ **/
+const cutTextTo = (text: string, n: number = 254) => {
+  return text.length > n ? text.substring(0, n) : text;
+};
+
 const months = [
   "January",
   "February",
@@ -180,7 +190,7 @@ export class ContentTranslator {
 
       if(this.isMultiSelect) {
         const leText = this.botFrameworkMessageToLivePersonMessage("multiselect");
-        elements = [new RichContentDefinitions.TextElement(leText, leText), ...elements];
+        elements = [new RichContentDefinitions.TextElement(leText, cutTextTo(leText)), ...elements];
         this.isMultiSelect = false;
       }
 
@@ -286,7 +296,7 @@ export class ContentTranslator {
     } else {
       return new RichContentDefinitions.TextElement(
         botFrameworkFactValue,
-        botFrameworkFactValue
+        cutTextTo(botFrameworkFactValue)
       );
     }
   }
@@ -393,7 +403,7 @@ export class ContentTranslator {
         vertical.elements.push(horizontal);
 
         horizontal.elements.push(
-          new RichContentDefinitions.TextElement(fact.title, fact.title, {
+          new RichContentDefinitions.TextElement(fact.title, cutTextTo(fact.title), {
             bold: true
           })
         );
@@ -426,7 +436,7 @@ export class ContentTranslator {
       const leText = this.botFrameworkMessageToLivePersonMessage(text);
 
       elements.push(
-        new RichContentDefinitions.TextElement(leText, leText, style)
+        new RichContentDefinitions.TextElement(leText, cutTextTo(leText), style)
       );
     } else if (type === RichContentDefinitions.ElementTypes.Image) {
       const { url } = botFrameworkItem;
@@ -536,7 +546,7 @@ export class ContentTranslator {
 
       if(this.isMultiSelect) {
         const leText = this.botFrameworkMessageToLivePersonMessage("multiselect");
-        elements = [new RichContentDefinitions.TextElement(leText, leText), ...elements];
+        elements = [new RichContentDefinitions.TextElement(leText, cutTextTo(leText)), ...elements];
         this.isMultiSelect = false;
       }
 
@@ -556,7 +566,7 @@ export class ContentTranslator {
       elements.push(
         new RichContentDefinitions.TextElement(
           botFrameworkAttachmentContent.title,
-          botFrameworkAttachmentContent.title
+          cutTextTo(botFrameworkAttachmentContent.title)
         )
       );
     }
@@ -565,7 +575,7 @@ export class ContentTranslator {
       elements.push(
         new RichContentDefinitions.TextElement(
           botFrameworkAttachmentContent.title.subtitle,
-          botFrameworkAttachmentContent.title.subtitle
+          cutTextTo(botFrameworkAttachmentContent.title.subtitle)
         )
       );
     }
