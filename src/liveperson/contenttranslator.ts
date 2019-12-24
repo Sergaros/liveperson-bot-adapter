@@ -122,8 +122,6 @@ export class ContentTranslator {
         ({ type }) => type === RichContentDefinitions.ElementTypes.MultiSelect
       ).length;
 
-      console.log("multiSelectCount - ", multiSelectCount);
-
       if (multiSelectCount) {
         const choiceListIndex = body.findIndex(
           ({ type }) => type === RichContentDefinitions.ElementTypes.MultiSelect
@@ -585,6 +583,34 @@ export class ContentTranslator {
     if (botFrameworkAttachmentContent.type === "AdaptiveCard") {
       const { body, actions } = botFrameworkAttachmentContent;
 
+      const multiSelectCount = body.filter(
+        ({ type }) => type === RichContentDefinitions.ElementTypes.MultiSelect
+      ).length;
+
+      if (multiSelectCount) {
+        const choiceListIndex = body.findIndex(
+          ({ type }) => type === RichContentDefinitions.ElementTypes.MultiSelect
+        );
+
+        if (choiceListIndex === -1) {
+          return;
+        }
+
+        const beforeBody = body.slice(0, choiceListIndex - 1);
+        if (beforeBody.length) {
+          beforeBody.forEach(item =>
+            this.botFrameworkItemToLivePersonElement(item, elements)
+          );
+        }
+
+        const afterBody = body.slice(choiceListIndex - 1);
+        this.botFrameworkItemsToLivePersonList(
+          multiSelectCount,
+          afterBody,
+          actions,
+          elements
+        );
+      } else {
       // translate items
       body.forEach(item => {
         this.botFrameworkItemToLivePersonElement(item, elements);
@@ -602,6 +628,7 @@ export class ContentTranslator {
           );
         });
       }
+    }
     } else {
       elements.push(
         new RichContentDefinitions.TextElement(

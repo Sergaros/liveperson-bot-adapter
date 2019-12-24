@@ -52,35 +52,128 @@ export class LivePersonBot {
         let count = await this.countProperty.get(turnContext);
         count = count === undefined ? 1 : ++count;
 
-        let reply: any = `${count}: You said ${viaString}: "${
-          turnContext.activity.text
-        }"`;
+        let reply: any = `${count}: You said ${viaString}: "${turnContext.activity.text}"`;
 
         if (turnContext.activity.text === "card") {
-          const buttons = [
-            {
-              type: ActionTypes.ImBack,
-              title: "1. Inline Attachment",
-              value: "1",
-              id: "button_id_1"
-            },
-            {
-              type: ActionTypes.ImBack,
-              title: "2. Internet Attachment",
-              value: "2",
-              id: "button_id_2"
-            },
-            {
-              type: ActionTypes.ImBack,
-              title: "3. Uploaded Attachment",
-              value: "3",
-              id: "button_id_3"
-            }
-          ];
 
-          const card = CardFactory.heroCard("Text", undefined, buttons, {
-            text:
-              "You can upload an image or select one of the following choices."
+
+          const card = CardFactory.adaptiveCard({
+            $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
+            type: "AdaptiveCard",
+            version: "1.0",
+            body: [
+              {
+                type: "TextBlock",
+                text:
+                  "What color do you want? *(isMultiSelect:false, style:compact)*"
+              },
+              {
+                type: "Input.ChoiceSet",
+                id: "myColor",
+                style: "compact",
+                isMultiSelect: false,
+                value: "1",
+                choices: [
+                  {
+                    title: "Red",
+                    value: "1"
+                  },
+                  {
+                    title: "Green",
+                    value: "2"
+                  },
+                  {
+                    title: "Blue",
+                    value: "3"
+                  }
+                ]
+              },
+              {
+                type: "TextBlock",
+                text:
+                  "What color do you want? *(isMultiSelect:false, style:expanded)*"
+              },
+              {
+                type: "Input.ChoiceSet",
+                id: "myColor2",
+                style: "expanded",
+                isMultiSelect: false,
+                value: "1",
+                choices: [
+                  {
+                    title: "Red",
+                    value: "1"
+                  },
+                  {
+                    title: "Green",
+                    value: "2"
+                  },
+                  {
+                    title: "Blue",
+                    value: "3"
+                  }
+                ]
+              },
+              {
+                type: "TextBlock",
+                text:
+                  "What colors do you want? *(isMultiSelect:true, style:compact)*"
+              },
+              {
+                type: "Input.ChoiceSet",
+                id: "myColor3",
+                isMultiSelect: true,
+                value: "1,3",
+                style: "compact",
+                choices: [
+                  {
+                    title: "Red",
+                    value: "1"
+                  },
+                  {
+                    title: "Green",
+                    value: "2"
+                  },
+                  {
+                    title: "Blue",
+                    value: "3"
+                  }
+                ]
+              },
+              {
+                type: "TextBlock",
+                text:
+                  "What colors do you want? *(isMultiSelect:true, style:expanded)*"
+              },
+              {
+                type: "Input.ChoiceSet",
+                id: "myColor4",
+                isMultiSelect: true,
+                value: "1",
+                style: "expanded",
+                choices: [
+                  {
+                    title: "Red",
+                    value: "1"
+                  },
+                  {
+                    title: "Green",
+                    value: "2"
+                  },
+                  {
+                    title: "Blue",
+                    value: "3"
+                  }
+                ]
+              }
+            ],
+            actions: [
+              {
+                type: "Action.Submit",
+                title: "OK",
+                id: "submit id"
+              }
+            ]
           });
 
           reply = { type: ActivityTypes.Message, attachments: [card] };
