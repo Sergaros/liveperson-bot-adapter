@@ -9,65 +9,13 @@ import {
 
 import * as RichContentDefinitions from "./richcontentdefinitions";
 import { LivePersonBotAdapter } from "./livepersonbotadapter";
-
-/**
- * Get day of month suffix
- * @param n day of month number
- * @return suffix
- **/
-const getDayOfMonthSuffix = (n: number) => {
-  if (n >= 1 && n <= 31) {
-    return "";
-  }
-
-  if (n >= 11 && n <= 13) {
-    return "th";
-  }
-  switch (n % 10) {
-    case 1:
-      return "st";
-    case 2:
-      return "nd";
-    case 3:
-      return "rd";
-    default:
-      return "th";
-  }
-};
-
-/**
- * Get action metadata
- * @param action object
- * @return metadata id object
- **/
-const getActionMetadata = (action: any): any => {
-  const { id } = action;
-  return id ? [{ id, type: "ExternalId" }] : null;
-};
-
-const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December"
-];
-const days = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday"
-];
+import {
+  months,
+  days,
+  getDayOfMonthSuffix,
+  getActionMetadata,
+  strCutter
+} from "./helpers";
 
 /*
  * Translation map
@@ -170,22 +118,53 @@ export class ContentTranslator {
         elements: elements
       };
 
-      // translate items
-      body.forEach(item => {
-        this.botFrameworkItemToLivePersonElement(item, elements);
-      });
+      const multiSelectCount = body.filter(
+        ({ type }) => type === RichContentDefinitions.ElementTypes.MultiSelect
+      ).length;
 
-      // translate actions
-      if (actions && actions.length) {
-        const horizontal = new RichContentDefinitions.Container("horizontal");
-        elements.push(horizontal);
+      console.log("multiSelectCount - ", multiSelectCount);
 
-        actions.forEach(action => {
-          this.botFrameworkActionToLivePersonElement(
-            action,
-            horizontal.elements
+      if (multiSelectCount) {
+        const choiceListIndex = body.findIndex(
+          ({ type }) => type === RichContentDefinitions.ElementTypes.MultiSelect
+        );
+
+        if (choiceListIndex === -1) {
+          return;
+        }
+
+        const beforeBody = body.slice(0, choiceListIndex - 1);
+        if (beforeBody.length) {
+          beforeBody.forEach(item =>
+            this.botFrameworkItemToLivePersonElement(item, elements)
           );
+        }
+
+        const afterBody = body.slice(choiceListIndex - 1);
+        this.botFrameworkItemsToLivePersonList(
+          multiSelectCount,
+          afterBody,
+          actions,
+          elements
+        );
+      } else {
+        // translate items
+        body.forEach(item => {
+          this.botFrameworkItemToLivePersonElement(item, elements);
         });
+
+        // translate actions
+        if (actions && actions.length) {
+          const horizontal = new RichContentDefinitions.Container("horizontal");
+          elements.push(horizontal);
+
+          actions.forEach(action => {
+            this.botFrameworkActionToLivePersonElement(
+              action,
+              horizontal.elements
+            );
+          });
+        }
       }
 
       event.type = "RichContentEvent";
@@ -277,7 +256,7 @@ export class ContentTranslator {
     } else {
       return new RichContentDefinitions.TextElement(
         botFrameworkFactValue,
-        botFrameworkFactValue
+        strCutter(botFrameworkFactValue)
       );
     }
   }
@@ -384,9 +363,13 @@ export class ContentTranslator {
         vertical.elements.push(horizontal);
 
         horizontal.elements.push(
-          new RichContentDefinitions.TextElement(fact.title, fact.title, {
-            bold: true
-          })
+          new RichContentDefinitions.TextElement(
+            fact.title,
+            strCutter(fact.title),
+            {
+              bold: true
+            }
+          )
         );
         horizontal.elements.push(
           this.botFrameworkFactToLivePersonElement(fact.value)
@@ -417,7 +400,7 @@ export class ContentTranslator {
       const leText = this.botFrameworkMessageToLivePersonMessage(text);
 
       elements.push(
-        new RichContentDefinitions.TextElement(leText, leText, style)
+        new RichContentDefinitions.TextElement(leText, strCutter(leText), style)
       );
     } else if (type === RichContentDefinitions.ElementTypes.Image) {
       const { url } = botFrameworkItem;
@@ -440,8 +423,9 @@ export class ContentTranslator {
           choise.title
         );
 
-        console.log('preselectedIds - ',preselectedIds);
-        const isSelected = preselectedIds.findIndex(el => choise.value === el) !== -1;
+        console.log("preselectedIds - ", preselectedIds);
+        const isSelected =
+          preselectedIds.findIndex(el => choise.value === el) !== -1;
 
         elements.push(
           new RichContentDefinitions.Button(
@@ -470,7 +454,8 @@ export class ContentTranslator {
    */
   protected botFrameworkActionToLivePersonElement(
     action: any,
-    elements: Array<RichContentDefinitions.Element>
+    elements: Array<RichContentDefinitions.Element>,
+    isMultiSelect: boolean = false
   ): void {
     const { type, title } = action;
     const metadata = getActionMetadata(action);
@@ -485,7 +470,19 @@ export class ContentTranslator {
 
       elements.push(
         new RichContentDefinitions.Button(
+          strCutter(title),
           title,
+          [buttonAction],
+          metadata
+        )
+      );
+    }
+    if (type === "Action.Submit" && isMultiSelect) {
+      let buttonAction = new RichContentDefinitions.SubmitButtonAction();
+
+      elements.push(
+        new RichContentDefinitions.SubmitButton(
+          strCutter(title),
           title,
           [buttonAction],
           metadata
@@ -497,13 +494,81 @@ export class ContentTranslator {
       );
       elements.push(
         new RichContentDefinitions.Button(
-          action.title,
+          strCutter(action.title),
           action.title,
           [buttonAction],
           metadata
         )
       );
     }
+  }
+
+  protected botFrameworkItemsToLivePersonList(
+    count: number,
+    bodyItems: Array<any>,
+    actions: Array<any>,
+    elements: Array<RichContentDefinitions.Element>
+  ) {
+    const list = new RichContentDefinitions.Container("list");
+    const sectionList = new RichContentDefinitions.Container("sectionList");
+    const buttonList = new RichContentDefinitions.Container("buttonList");
+    let ch = 0;
+
+    list.elements.push(sectionList);
+    if (count > 1) {
+      list.elements.unshift(new RichContentDefinitions.SimpleTextElement(""));
+    }
+
+    let currentSection: RichContentDefinitions.Section;
+
+    for (let i = 0; i < bodyItems.length; i++) {
+      const item = bodyItems[i];
+      const { type } = item;
+
+      if (ch >= count) {
+        break;
+      }
+
+      if (type === RichContentDefinitions.ElementTypes.TextBlock) {
+        const title = new RichContentDefinitions.SimpleTextElement(item.text);
+
+        currentSection = new RichContentDefinitions.Section("");
+        sectionList.elements.push(currentSection);
+
+        if (count === 1) {
+          list.elements.unshift(title);
+        } else if (count > 1) {
+          currentSection.elements.push(title);
+        }
+      } else if (type === RichContentDefinitions.ElementTypes.MultiSelect) {
+        const checkList = new RichContentDefinitions.Container("checklist");
+        currentSection.elements.push(checkList);
+
+        const { id, choices } = item;
+        currentSection.sectionID = id;
+
+        choices.forEach(({ title, value }) => {
+          checkList.elements.push(
+            new RichContentDefinitions.CheckBox(title, value)
+          );
+        });
+
+        ch++;
+      }
+    }
+
+    for (let i = 0; i < actions.length; i++) {
+      const action = actions[i];
+
+      this.botFrameworkActionToLivePersonElement(
+        action,
+        buttonList.elements,
+        true
+      );
+    }
+    list.elements.push(buttonList);
+
+    elements.push(list);
   }
 
   /**
@@ -541,7 +606,7 @@ export class ContentTranslator {
       elements.push(
         new RichContentDefinitions.TextElement(
           botFrameworkAttachmentContent.title,
-          botFrameworkAttachmentContent.title
+          strCutter(botFrameworkAttachmentContent.title)
         )
       );
     }
@@ -550,7 +615,7 @@ export class ContentTranslator {
       elements.push(
         new RichContentDefinitions.TextElement(
           botFrameworkAttachmentContent.title.subtitle,
-          botFrameworkAttachmentContent.title.subtitle
+          strCutter(botFrameworkAttachmentContent.title.subtitle)
         )
       );
     }
@@ -565,7 +630,7 @@ export class ContentTranslator {
           );
           elements.push(
             new RichContentDefinitions.Button(
-              element.title,
+              strCutter(element.title),
               element.title,
               [action],
               metadata
@@ -580,7 +645,7 @@ export class ContentTranslator {
           );
           elements.push(
             new RichContentDefinitions.Button(
-              element.title,
+              strCutter(element.title),
               element.title,
               [action],
               metadata
