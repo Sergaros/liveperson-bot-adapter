@@ -243,12 +243,9 @@ export class LivePersonBotAdapter extends BotAdapter {
                             metadata: c.metadata
                         };
 
-                        console.log("ContentEvent ", JSON.stringify(body));
-                    }
                     // remove from respond list all the messages that were already read
                     if (c.event.type === 'AcceptStatusEvent' && c.originatorId === this.livePersonAgent.agentId) {
 
-                        console.log("AcceptStatusEvent ", JSON.stringify(body));
                         c.event.sequenceList.forEach(seq => {
                             delete respond[`${body.dialogId}-${seq}`];
                         });
