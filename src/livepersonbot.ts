@@ -40,10 +40,6 @@ export class LivePersonBot {
         ? "via LivePerson"
         : "via Bot Framework connector";
 
-      console.log(
-        "turnContext.activity - ",
-        JSON.stringify(turnContext.activity)
-      );
       // Handle message activity type. User's responses via text or speech or card interactions flow back to the bot as Message activity.
       // Message activities may contain text, speech, interactive cards, and binary or unknown attachments.
       // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
