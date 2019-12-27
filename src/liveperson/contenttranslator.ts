@@ -194,10 +194,6 @@ export class ContentTranslator {
         );
       }
 
-      // event = {
-      //     type: 'RichContentEvent',
-      //     content: richContent,
-      // }
       event.type = "RichContentEvent";
       event.content = richContent;
     }
@@ -421,7 +417,6 @@ export class ContentTranslator {
           choise.title
         );
 
-        console.log("preselectedIds - ", preselectedIds);
         const isSelected =
           preselectedIds.findIndex(el => choise.value === el) !== -1;
 
@@ -501,6 +496,14 @@ export class ContentTranslator {
     }
   }
 
+  /**
+   * Translates the Bot Framework items content to LivePerson List element.
+   *
+   * @param count choices sets amount.
+   * @param items The Bot Framework items.
+   * @param actions The Bot Framework actions.
+   * @param elements LivePerson elements container.
+   */
   protected botFrameworkItemsToLivePersonList(
     count: number,
     bodyItems: Array<any>,
