@@ -469,8 +469,7 @@ export class ContentTranslator {
           metadata
         )
       );
-    }
-    if (type === "Action.Submit" && isMultiSelect) {
+    } else if (type === "Action.Submit" && isMultiSelect) {
       let buttonAction = new RichContentDefinitions.SubmitButtonAction();
 
       elements.push(
