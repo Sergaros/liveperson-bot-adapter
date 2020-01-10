@@ -269,7 +269,7 @@ export class CheckBox extends Element{
     this.text = text;
 
     this.click = {
-      actions: [{type: "checked", "publishText": value}],
+      actions: [{type: "checked", "publishText": text}],
       metadata: [{ type: "ExternalId", id: value }]
     };
   }
