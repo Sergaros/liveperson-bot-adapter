@@ -261,12 +261,14 @@ export class Section extends Container {
 export class CheckBox extends Element{
   readonly type: string;
   readonly text: string;
+  readonly tooltip: string;
   readonly click: any;
 
-  constructor(text: string, value: string){
+  constructor(text: string, value: string, desc: string){
     super();
     this.type = "checkbox";
     this.text = text;
+    this.tooltip = desc;
 
     this.click = {
       actions: [{type: "checked", "publishText": text}],

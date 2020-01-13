@@ -167,6 +167,9 @@ export class ContentTranslator {
 
       event.type = "RichContentEvent";
       event.content = richContent;
+
+
+
     }
 
     if (attachments !== undefined) {
@@ -198,6 +201,9 @@ export class ContentTranslator {
       event.content = richContent;
     }
 
+
+
+    console.log('EVENT => ', JSON.stringify(event));
     return event;
   }
 
@@ -547,10 +553,11 @@ export class ContentTranslator {
 
         const { id, choices } = item;
         currentSection.sectionID = id;
+        choices.forEach(({ title, value, desc }) => {
 
-        choices.forEach(({ title, value }) => {
+
           checkList.elements.push(
-            new RichContentDefinitions.CheckBox(title, value)
+            new RichContentDefinitions.CheckBox(title, value, desc)
           );
         });
 

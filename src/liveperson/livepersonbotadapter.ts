@@ -291,6 +291,13 @@ export class LivePersonBotAdapter extends BotAdapter {
       body.changes.forEach(c => {
         // In the current version MessagingEventNotification are recived also without subscription
         // Will be fixed in the next api version. So we have to check if this notification is handled by us.
+
+        if (c.metadata) {
+          if(c.metadata.length) {
+            console.log('META => ', c.metadata);
+          }
+
+        }
         if (openConvs[c.dialogId]) {
           // add to respond list all content event not by me
           if (
@@ -333,10 +340,10 @@ export class LivePersonBotAdapter extends BotAdapter {
         // Notify listener to process the received message and attach customerId from LivePerson to the message
         this.livePersonAgent.getUserProfile(consumerId, (e, profileResp) => {
           let customerId: string = "";
-          if (profileResp != undefined) {
-            let ctmrInfo = profileResp.filter(pr => pr.type == "ctmrinfo")[0];
-            customerId = ctmrInfo.info.customerId;
-          }
+          // if (profileResp != undefined) {
+            // let ctmrInfo = profileResp.filter(pr => pr.type == "ctmrinfo")[0];
+            // customerId = ctmrInfo.info.customerId;
+          // }
           let event = { ...contentEvent, customerId };
           this.livePersonAgentListener.onMessage(this, event);
         });
