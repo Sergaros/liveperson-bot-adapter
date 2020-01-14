@@ -153,23 +153,17 @@ export class ContentTranslator {
 
         // translate actions
         if (actions && actions.length) {
-          const horizontal = new RichContentDefinitions.Container("horizontal");
-          elements.push(horizontal);
+          const vr = new RichContentDefinitions.Container("vertical");
+          elements.push(vr);
 
           actions.forEach(action => {
-            this.botFrameworkActionToLivePersonElement(
-              action,
-              horizontal.elements
-            );
+            this.botFrameworkActionToLivePersonElement(action, vr.elements);
           });
         }
       }
 
       event.type = "RichContentEvent";
       event.content = richContent;
-
-
-
     }
 
     if (attachments !== undefined) {
@@ -200,8 +194,6 @@ export class ContentTranslator {
       event.type = "RichContentEvent";
       event.content = richContent;
     }
-
-
 
     console.log('EVENT => ', JSON.stringify(event));
     return event;
@@ -442,6 +434,16 @@ export class ContentTranslator {
           )
         );
       });
+    } else if (type === RichContentDefinitions.ElementTypes.ActionSet) {
+      const actions = botFrameworkItem.actions;
+      if (actions && actions.length) {
+        const vertical = new RichContentDefinitions.Container("vertical");
+        elements.push(vertical);
+
+        actions.forEach(action => {
+          this.botFrameworkActionToLivePersonElement(action, vertical.elements);
+        });
+      }
     }
   }
 
@@ -554,8 +556,6 @@ export class ContentTranslator {
         const { id, choices } = item;
         currentSection.sectionID = id;
         choices.forEach(({ title, value, desc }) => {
-
-
           checkList.elements.push(
             new RichContentDefinitions.CheckBox(title, value, desc)
           );
@@ -621,24 +621,24 @@ export class ContentTranslator {
           elements
         );
       } else {
-      // translate items
-      body.forEach(item => {
-        this.botFrameworkItemToLivePersonElement(item, elements);
-      });
-
-      // translate actions
-      if (actions && actions.length) {
-        const horizontal = new RichContentDefinitions.Container("horizontal");
-        elements.push(horizontal);
-
-        actions.forEach(action => {
-          this.botFrameworkActionToLivePersonElement(
-            action,
-            horizontal.elements
-          );
+        // translate items
+        body.forEach(item => {
+          this.botFrameworkItemToLivePersonElement(item, elements);
         });
+
+        // translate actions
+        if (actions && actions.length) {
+          const vertical = new RichContentDefinitions.Container("vertical");
+          elements.push(vertical);
+
+          actions.forEach(action => {
+            this.botFrameworkActionToLivePersonElement(
+              action,
+              vertical.elements
+            );
+          });
+        }
       }
-    }
     } else {
       elements.push(
         new RichContentDefinitions.TextElement(

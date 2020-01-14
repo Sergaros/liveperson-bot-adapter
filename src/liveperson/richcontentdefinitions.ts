@@ -287,4 +287,5 @@ export enum ElementTypes {
   Image = "Image",
   Media = "Media",
   MultiSelect = "Input.ChoiceSet",
+  ActionSet = "ActionSet",
 }
