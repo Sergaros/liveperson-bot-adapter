@@ -262,16 +262,16 @@ export class LivePersonBotAdapter extends BotAdapter {
             this.livePersonAgent.getUserProfile(
               consumerId,
               (e, profileResp) => {
-                this.livePersonAgent.publishEvent({
-                  dialogId: change.result.convId,
-                  event: {
-                    type: "ContentEvent",
-                    contentType: "text/plain",
-                    message: `Just joined to conversation with ${JSON.stringify(
-                      profileResp
-                    )}`
-                  }
-                });
+                // this.livePersonAgent.publishEvent({
+                //   dialogId: change.result.convId,
+                //   event: {
+                //     type: "ContentEvent",
+                //     contentType: "text/plain",
+                //     message: `Just joined to conversation with ${JSON.stringify(
+                //       profileResp
+                //     )}`
+                //   }
+                // });
               }
             );
             this.livePersonAgent.subscribeMessagingEvents({
