@@ -191,6 +191,13 @@ export class LivePersonBotAdapter extends BotAdapter {
    * - License: https://github.com/LivePersonInc/node-agent-sdk/blob/master/LICENSE
    */
   protected initializeLivePersonAgent() {
+    const reconnectInterval = 5;        // in seconds
+    const reconnectAttempts = 35;
+    const reconnectRatio    = 1.25;     // ratio in the geometric series used to determine reconnect exponential back-off
+
+
+
+
     if (!this.livePersonAgent) {
       console.error("No LivePerson agent to initialize");
       return;
@@ -219,13 +226,32 @@ export class LivePersonBotAdapter extends BotAdapter {
           )
       );
       this.livePersonAgent.subscribeRoutingTasks({});
-      this.livePersonAgent._pingClock = setInterval(
-        this.livePersonAgent.getClock,
-        30000
-      );
+      this.livePersonAgent._pingClock = setInterval(() => {
+        this.livePersonAgent.getClock({}, (e, resp) => {
+          console.log('\x1b[36m',  'ping' ,'\x1b[0m');
+
+          if (e) {
+            console.error(e);
+            this.livePersonAgent._reconnect();
+
+          } else {
+            console.log('\x1b[36m',  'pong' ,'\x1b[0m');
+          }
+        });
+      }, 30000);
+
 
       this.livePersonAgentListener.onConnected(this.livePersonAgent.agentId);
     });
+
+    this.livePersonAgent._reconnect = (delay = reconnectInterval, attempt = 1) => {
+      console.log('\x1b[33m',  'Try to reconnect...' ,'\x1b[0m');
+
+      this.livePersonAgent._retryConnection = setTimeout(()=>{
+        this.livePersonAgent.reconnect();
+        if (++attempt <= reconnectAttempts) { this.livePersonAgent._reconnect(delay * reconnectRatio, attempt) }
+      }, delay * 1000)
+    }
 
     // Accept any routingTask (==ring)
     this.livePersonAgent.on("routing.RoutingTaskNotification", body => {
@@ -252,6 +278,7 @@ export class LivePersonBotAdapter extends BotAdapter {
       notificationBody => {
         notificationBody.changes.forEach(change => {
           if (change.type === "UPSERT" && !openConvs[change.result.convId]) {
+
             // new conversation for me
             openConvs[change.result.convId] = {};
 
@@ -296,12 +323,13 @@ export class LivePersonBotAdapter extends BotAdapter {
 
         if (c.metadata) {
           if(c.metadata.length) {
-            console.log('META => ', c.metadata);
+            // console.log('META => ', c.metadata);
           }
 
         }
         if (openConvs[c.dialogId]) {
           // add to respond list all content event not by me
+          // console.log(c);
           if (
             c.event.type === "ContentEvent" &&
             c.originatorId !== this.livePersonAgent.agentId
@@ -312,7 +340,8 @@ export class LivePersonBotAdapter extends BotAdapter {
               dialogId: body.dialogId,
               sequence: c.sequence,
               message: c.event.message,
-              metadata: c.metadata
+              metadata: c.metadata,
+              serverTimestamp: c.serverTimestamp
             };
           }
           // remove from respond list all the messages that were already read
@@ -338,15 +367,17 @@ export class LivePersonBotAdapter extends BotAdapter {
             sequenceList: [contentEvent.sequence]
           }
         });
-
         // Notify listener to process the received message and attach customerId from LivePerson to the message
-        this.livePersonAgent.getUserProfile(consumerId, (e, profileResp) => {
+        this.livePersonAgent.getUserProfile(consumerId, (e, profile) => {
           let customerId: string = "";
-          // if (profileResp != undefined) {
-            // let ctmrInfo = profileResp.filter(pr => pr.type == "ctmrinfo")[0];
-            // customerId = ctmrInfo.info.customerId;
-          // }
+          if (profile != undefined && typeof profile !== "string") {
+
+            let ctmrInfo = profile.filter(pr => pr.type == "ctmrinfo")[0];
+            customerId = ctmrInfo.info.customerId || 'User';
+          }
           let event = { ...contentEvent, customerId };
+          // console.log('\x1b[32m',  `CustomerIdInfo => ${customerId}  ` ,'\x1b[0m');
+
           this.livePersonAgentListener.onMessage(this, event);
         });
       });
@@ -359,6 +390,8 @@ export class LivePersonBotAdapter extends BotAdapter {
       // liveperson's retry policy guidelines: https://developers.liveperson.com/guides-retry-policy.html
       console.log("LivePerson agent socket closed", data);
       clearInterval(this.livePersonAgent._pingClock);
+      this.livePersonAgent._reconnect();
+
     });
   }
 
