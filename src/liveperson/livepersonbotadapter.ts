@@ -275,7 +275,9 @@ export class LivePersonBotAdapter extends BotAdapter {
               }
             );
             this.livePersonAgent.subscribeMessagingEvents({
-              dialogId: change.result.convId
+              dialogId: change.result.convId,
+              skillId: change.result.conversationDetails,
+              fromSeq: 999999999999999
             });
           } else if (change.type === "DELETE") {
             // conversation was closed or transferred
