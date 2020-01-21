@@ -48,6 +48,69 @@ export class LivePersonBot {
         let count = await this.countProperty.get(turnContext);
         count = count === undefined ? 1 : ++count;
 
+
+
+
+        if (turnContext.activity.text === "card") {
+
+          const card = CardFactory.adaptiveCard({
+                "type": "AdaptiveCard",
+                "body": [
+                  {
+                    "type": "Container",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "size": "Medium",
+                        "weight": "Bolder",
+                        "text": "Surface Dial"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Container",
+                    "items": [
+                      {
+                        "type": "Image",
+                        "url": "https://img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/RE1Jq0G?ver=c215&q=90&m=6&h=270&w=270&b=%23FFFFFFFF&f=jpg&o=f&aim=true"
+                      },
+                      {
+                        "type": "TextBlock",
+                        "text": "• Easy access to shortcuts, controls, drawing tools, and more\n• Adjust volume on your favorite tracks in Spotify, Groove, and Pandora\n• Compatible with all Windows 10 devices\n• Edit, rotate, and manipulate your creations in a single turn",
+                        "wrap": true
+                      },
+                      {
+                        "type": "FactSet",
+                        "facts": [
+                          { "title": "Starting at:", "value": "$99.99" },
+                          { "title": "Colors:", "value": "Single" }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "actions": [
+                  {
+                    "type": "Action.OpenUrl",
+                    "title": "Learn more",
+                    "url": "https://www.microsoft.com/en-us/p/surface-dial/925R551SKTGN"
+                  }
+                ],
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "version": "1.0"
+              }
+
+          );
+          console.log('CARD =>>>', card);
+          const reply = { type: ActivityTypes.Message, attachments: [card] };
+
+          await turnContext.sendActivity(reply);
+        }
+
+
+
+
+
       } else {
         // Generic handler for all other activity types.
         await turnContext.sendActivity(

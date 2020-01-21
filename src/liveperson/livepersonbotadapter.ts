@@ -195,9 +195,6 @@ export class LivePersonBotAdapter extends BotAdapter {
     const reconnectAttempts = 35;
     const reconnectRatio    = 1.25;     // ratio in the geometric series used to determine reconnect exponential back-off
 
-
-
-
     if (!this.livePersonAgent) {
       console.error("No LivePerson agent to initialize");
       return;
@@ -289,22 +286,50 @@ export class LivePersonBotAdapter extends BotAdapter {
             this.livePersonAgent.getUserProfile(
               consumerId,
               (e, profileResp) => {
-                // this.livePersonAgent.publishEvent({
-                //   dialogId: change.result.convId,
-                //   event: {
-                //     type: "ContentEvent",
-                //     contentType: "text/plain",
-                //     message: `Just joined to conversation with ${JSON.stringify(
-                //       profileResp
-                //     )}`
-                //   }
-                // });
+                this.livePersonAgent.publishEvent({
+                  dialogId: change.result.convId,
+                  event: {
+                    type: 'ContentEvent',
+                    contentType: 'text/plain',
+                    message: 'FIRST TEST MESSAGE'
+                  }
+                });
+                this.livePersonAgent.publishEvent({
+                  dialogId: change.result.convId,
+                  event: {
+                    type: 'ContentEvent',
+                    contentType: 'text/plain',
+                    message: 'SECOND TEST MESSAGE'
+                  }
+                });
               }
             );
+
+
+
+            var messageSequence = "";
+            if (change.result.lastContentEventNotification && change.result.lastContentEventNotification.sequence === 0) {
+              messageSequence = "0";
+            }
+            var contentEvent = {
+              dialogId: change.result.convId,
+              sequence: messageSequence,
+              message: "",
+              clientprops: "",
+            };
+
+            let event = {
+              ...contentEvent,
+              consumerId
+            };
+            this.livePersonAgentListener.onConsumerConnect(this, event);
+
+
+
             this.livePersonAgent.subscribeMessagingEvents({
               dialogId: change.result.convId,
               skillId: change.result.conversationDetails,
-              fromSeq: 999999999999999
+              fromSeq: 999999999999999999999999
             });
           } else if (change.type === "DELETE") {
             // conversation was closed or transferred
@@ -377,7 +402,7 @@ export class LivePersonBotAdapter extends BotAdapter {
           }
           let event = { ...contentEvent, customerId };
           // console.log('\x1b[32m',  `CustomerIdInfo => ${customerId}  ` ,'\x1b[0m');
-
+          console.log(event);
           this.livePersonAgentListener.onMessage(this, event);
         });
       });

@@ -4,7 +4,8 @@ import {
   ConversationAccount,
   RoleTypes,
   SuggestedActions,
-  TurnContext
+  TurnContext,
+  ActivityTypes
 } from "botbuilder";
 
 import * as RichContentDefinitions from "./richcontentdefinitions";
@@ -43,6 +44,34 @@ export class ContentTranslator {
    * @param livePersonBotAdapter The LivePerson bot adapter.
    * @returns A newly created TurnContext instance based on the given content event.
    */
+
+  public connectEventToTurnContext(contentEvent, livePersonBotAdapter) {
+    let channelAccount = {
+      id: contentEvent.customerId,
+      name: contentEvent.customerId,
+      role: "user",
+      clientprops: contentEvent.clientprops
+    };
+    let conversationAccount = {
+      isGroup: false,
+      conversationType: "",
+      id: contentEvent.dialogId,
+      name: "",
+      role: RoleTypes.User
+    };
+
+    let turnContext = new TurnContext(livePersonBotAdapter, {
+      channelData: channelAccount,
+      conversation: conversationAccount,
+      channelId: "liveperson",
+      text: contentEvent.message,
+      type: ActivityTypes.ConversationUpdate
+    });
+
+    //let turnContext = new TurnContext(livePersonBotAdapter, message);
+    return turnContext;
+  }
+
   public contentEventToTurnContext(
     contentEvent,
     livePersonBotAdapter: LivePersonBotAdapter
@@ -194,8 +223,384 @@ export class ContentTranslator {
       event.type = "RichContentEvent";
       event.content = richContent;
     }
+    // HERE
 
-    console.log('EVENT => ', JSON.stringify(event));
+    // console.log('EVENT => ', JSON.stringify(event));
+    event = {
+      type: "RichContentEvent",
+      content: {
+        elements: [
+          {
+            type: "vertical",
+            elements: [
+              {
+                type: "image",
+                tooltip: "image tooltip",
+                url:
+                  "https://dev.virtualearth.net/REST/V1/Imagery/Map/Road/storeAddress=Bellevue%20Square%20Mall,%20WA?mapSize=400,200&format=png&key=AoBAtD-bqf6uJux-MtQL5e_x1r3kD4gjUYkOZi6a8WYJScWoyhcTPNTNnbIvNHgE"
+              },
+              {
+                type: "text",
+                text: "Bellevue Square Mall",
+                tooltip: "Bellevue Square Mall",
+                style: { bold: false, size: "medium" }
+              },
+              {
+                type: "text",
+                text: "116 Bellevue Square, Bellevue, WA 98004-5021",
+                tooltip: "116 Bellevue Squa..."
+              },
+              {
+                type: "text",
+                text: "(425) 519-3580",
+                tooltip: "(425) 519-3580"
+              },
+              {
+                type: "text",
+                text: "Mon-Sat: 9:30AM-9:30PM\nSun: 11AM-7PM",
+                tooltip: "Mon-Sat: 9:30AM-9..."
+              },
+              {
+                type: "text",
+                text: "Closed now",
+                tooltip: "Closed now",
+                style: { color: "#fe0002" }
+              },
+              {
+                type: "vertical",
+                elements: [
+                  {
+                    type: "button",
+                    tooltip: "More info",
+                    title: "More info",
+                    click: {
+                      actions: [
+                        {
+                          name: "More info",
+                          uri:
+                            "https://www.microsoft.com/en-US/store/locations/province=WA/city=Bellevue/mallName=BellevueSquareMall/storeCodestore-6",
+                          type: "link"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    type: "button",
+                    tooltip: "Get directions",
+                    title: "Get directions",
+                    click: {
+                      actions: [
+                        {
+                          name: "Get directions",
+                          uri:
+                            "https://www.bing.com/maps?where1=Bellevue%20Square%20Mall,116%20Bellevue%20Square,Bellevue",
+                          type: "link"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            type: "vertical",
+            elements: [
+              {
+                type: "image",
+                tooltip: "image tooltip",
+                url:
+                  "https://dev.virtualearth.net/REST/V1/Imagery/Map/Road/storeAddress=University%20Village,%20WA?mapSize=400,200&format=png&key=AoBAtD-bqf6uJux-MtQL5e_x1r3kD4gjUYkOZi6a8WYJScWoyhcTPNTNnbIvNHgE"
+              },
+              {
+                type: "text",
+                text: "University Village",
+                tooltip: "University Village",
+                style: { bold: false, size: "medium" }
+              },
+              {
+                type: "text",
+                text:
+                  "2624 NE University Village Street, Seattle, WA 98105-5023",
+                tooltip: "2624 NE Universit..."
+              },
+              {
+                type: "text",
+                text: "(206) 834-0680",
+                tooltip: "(206) 834-0680"
+              },
+              {
+                type: "text",
+                text: "Mon-Sat: 9:30AM-9PM\nSun: 11AM-6PM",
+                tooltip: "Mon-Sat: 9:30AM-9..."
+              },
+              {
+                type: "text",
+                text: "Closed now",
+                tooltip: "Closed now",
+                style: { color: "#fe0002" }
+              },
+              {
+                type: "vertical",
+                elements: [
+                  {
+                    type: "button",
+                    tooltip: "More info",
+                    title: "More info",
+                    click: {
+                      actions: [
+                        {
+                          name: "More info",
+                          uri:
+                            "https://www.microsoft.com/en-US/store/locations/province=WA/city=Seattle/mallName=UniversityVillage/storeCodestore-13",
+                          type: "link"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    type: "button",
+                    tooltip: "Get directions",
+                    title: "Get directions",
+                    click: {
+                      actions: [
+                        {
+                          name: "Get directions",
+                          uri:
+                            "https://www.bing.com/maps?where1=University%20Village,2624%20NE%20University%20Village%20Street,Seattle",
+                          type: "link"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            type: "vertical",
+            elements: [
+              {
+                type: "image",
+                tooltip: "image tooltip",
+                url:
+                  "https://dev.virtualearth.net/REST/V1/Imagery/Map/Road/storeAddress=Pioneer%20Place,%20OR?mapSize=400,200&format=png&key=AoBAtD-bqf6uJux-MtQL5e_x1r3kD4gjUYkOZi6a8WYJScWoyhcTPNTNnbIvNHgE"
+              },
+              {
+                type: "text",
+                text: "Pioneer Place",
+                tooltip: "Pioneer Place",
+                style: { bold: false, size: "medium" }
+              },
+              {
+                type: "text",
+                text: "300 SW Yamhill St., Portland, OR 97204-2425",
+                tooltip: "300 SW Yamhill St..."
+              },
+              {
+                type: "text",
+                text: "(503) 265-1400",
+                tooltip: "(503) 265-1400"
+              },
+              {
+                type: "text",
+                text: "Mon-Sat: 10AM-8PM\nSun: 11AM-6PM",
+                tooltip: "Mon-Sat: 10AM-8PM..."
+              },
+              {
+                type: "text",
+                text: "Closed now",
+                tooltip: "Closed now",
+                style: { color: "#fe0002" }
+              },
+              {
+                type: "vertical",
+                elements: [
+                  {
+                    type: "button",
+                    tooltip: "More info",
+                    title: "More info",
+                    click: {
+                      actions: [
+                        {
+                          name: "More info",
+                          uri:
+                            "https://www.microsoft.com/en-US/store/locations/province=OR/city=Portland/mallName=PioneerPlace/storeCodestore-40",
+                          type: "link"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    type: "button",
+                    tooltip: "Get directions",
+                    title: "Get directions",
+                    click: {
+                      actions: [
+                        {
+                          name: "Get directions",
+                          uri:
+                            "https://www.bing.com/maps?where1=Pioneer%20Place,300%20SW%20Yamhill%20St.,Portland",
+                          type: "link"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            type: "vertical",
+            elements: [
+              {
+                type: "image",
+                tooltip: "image tooltip",
+                url:
+                  "https://dev.virtualearth.net/REST/V1/Imagery/Map/Road/storeAddress=Metropolis%20at%20Metrotown,%20BC?mapSize=400,200&format=png&key=AoBAtD-bqf6uJux-MtQL5e_x1r3kD4gjUYkOZi6a8WYJScWoyhcTPNTNnbIvNHgE"
+              },
+              {
+                type: "text",
+                text: "Metropolis at Metrotown",
+                tooltip: "Metropolis at Met...",
+                style: { bold: false, size: "medium" }
+              },
+              {
+                type: "text",
+                text: "#230 -4800 Kingsway, Burnaby, BC V5H 4J2",
+                tooltip: "#230 -4800 Kingsw..."
+              },
+              {
+                type: "text",
+                text: "(604) 639-3520",
+                tooltip: "(604) 639-3520"
+              },
+              {
+                type: "text",
+                text: "Mon-Sat: 10AM-9PM\nSun: 10AM-7PM",
+                tooltip: "Mon-Sat: 10AM-9PM..."
+              },
+              {
+                type: "text",
+                text: "Closed now",
+                tooltip: "Closed now",
+                style: { color: "#fe0002" }
+              },
+              {
+                type: "vertical",
+                elements: [
+                  {
+                    type: "button",
+                    tooltip: "More info",
+                    title: "More info",
+                    click: {
+                      actions: [
+                        {
+                          name: "More info",
+                          uri:
+                            "https://www.microsoft.com/en-US/store/locations/province=BC/city=Burnaby/mallName=MetropolisatMetrotown/storeCodestore-1016",
+                          type: "link"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    type: "button",
+                    tooltip: "Get directions",
+                    title: "Get directions",
+                    click: {
+                      actions: [
+                        {
+                          name: "Get directions",
+                          uri:
+                            "https://www.bing.com/maps?where1=Metropolis%20at%20Metrotown,#230%20-4800%20Kingsway,Burnaby",
+                          type: "link"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            type: "vertical",
+            elements: [
+              {
+                type: "image",
+                tooltip: "image tooltip",
+                url:
+                  "https://dev.virtualearth.net/REST/V1/Imagery/Map/Road/storeAddress=CF%20Pacific%20Centre,%20BC?mapSize=400,200&format=png&key=AoBAtD-bqf6uJux-MtQL5e_x1r3kD4gjUYkOZi6a8WYJScWoyhcTPNTNnbIvNHgE"
+              },
+              {
+                type: "text",
+                text: "CF Pacific Centre",
+                tooltip: "CF Pacific Centre",
+                style: { bold: false, size: "medium" }
+              },
+              {
+                type: "text",
+                text: "701 West Georgia Street , Vancouver, BC V7Y 1G5",
+                tooltip: "701 West Georgia ..."
+              },
+              {
+                type: "text",
+                text: "(604) 629-4930",
+                tooltip: "(604) 629-4930"
+              },
+              {
+                type: "text",
+                text: "Mon-Sat: 10AM-9PM\nSun: 11AM-7PM",
+                tooltip: "Mon-Sat: 10AM-9PM..."
+              },
+              {
+                type: "text",
+                text: "Closed now",
+                tooltip: "Closed now",
+                style: { color: "#fe0002" }
+              },
+              {
+                type: "vertical",
+                elements: [
+                  {
+                    type: "button",
+                    tooltip: "More info",
+                    title: "More info",
+                    click: {
+                      actions: [
+                        {
+                          name: "More info",
+                          uri:
+                            "https://www.microsoft.com/en-US/store/locations/province=BC/city=Vancouver/mallName=CFPacificCentre/storeCodestore-1091",
+                          type: "link"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    type: "button",
+                    tooltip: "Get directions",
+                    title: "Get directions",
+                    click: {
+                      actions: [
+                        {
+                          name: "Get directions",
+                          uri:
+                            "https://www.bing.com/maps?where1=CF%20Pacific%20Centre,701%20West%20Georgia%20Street%20,Vancouver",
+                          type: "link"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        type: "carousel",
+        padding: 10
+      }
+    };
     return event;
   }
 
