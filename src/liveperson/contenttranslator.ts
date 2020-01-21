@@ -65,8 +65,9 @@ export class ContentTranslator {
       conversation: conversationAccount,
       channelId: "liveperson",
       text: contentEvent.message,
-      type: "message"
-      // multiSelectData: contentEvent.metadata
+      type: "message",
+      // @ts-ignore
+      multiSelectData: contentEvent.metadata
     });
 
     //let turnContext = new TurnContext(livePersonBotAdapter, message);
