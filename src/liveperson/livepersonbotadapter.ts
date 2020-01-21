@@ -191,9 +191,9 @@ export class LivePersonBotAdapter extends BotAdapter {
    * - License: https://github.com/LivePersonInc/node-agent-sdk/blob/master/LICENSE
    */
   protected initializeLivePersonAgent() {
-    const reconnectInterval = 5;        // in seconds
+    const reconnectInterval = 5; // in seconds
     const reconnectAttempts = 35;
-    const reconnectRatio    = 1.25;     // ratio in the geometric series used to determine reconnect exponential back-off
+    const reconnectRatio = 1.25; // ratio in the geometric series used to determine reconnect exponential back-off
 
     if (!this.livePersonAgent) {
       console.error("No LivePerson agent to initialize");
@@ -225,30 +225,33 @@ export class LivePersonBotAdapter extends BotAdapter {
       this.livePersonAgent.subscribeRoutingTasks({});
       this.livePersonAgent._pingClock = setInterval(() => {
         this.livePersonAgent.getClock({}, (e, resp) => {
-          console.log('\x1b[36m',  'ping' ,'\x1b[0m');
+          console.log("\x1b[36m", "ping", "\x1b[0m");
 
           if (e) {
             console.error(e);
             this.livePersonAgent._reconnect();
-
           } else {
-            console.log('\x1b[36m',  'pong' ,'\x1b[0m');
+            console.log("\x1b[36m", "pong", "\x1b[0m");
           }
         });
       }, 30000);
 
-
       this.livePersonAgentListener.onConnected(this.livePersonAgent.agentId);
     });
 
-    this.livePersonAgent._reconnect = (delay = reconnectInterval, attempt = 1) => {
-      console.log('\x1b[33m',  'Try to reconnect...' ,'\x1b[0m');
+    this.livePersonAgent._reconnect = (
+      delay = reconnectInterval,
+      attempt = 1
+    ) => {
+      console.log("\x1b[33m", "Try to reconnect...", "\x1b[0m");
 
-      this.livePersonAgent._retryConnection = setTimeout(()=>{
+      this.livePersonAgent._retryConnection = setTimeout(() => {
         this.livePersonAgent.reconnect();
-        if (++attempt <= reconnectAttempts) { this.livePersonAgent._reconnect(delay * reconnectRatio, attempt) }
-      }, delay * 1000)
-    }
+        if (++attempt <= reconnectAttempts) {
+          this.livePersonAgent._reconnect(delay * reconnectRatio, attempt);
+        }
+      }, delay * 1000);
+    };
 
     // Accept any routingTask (==ring)
     this.livePersonAgent.on("routing.RoutingTaskNotification", body => {
@@ -275,7 +278,6 @@ export class LivePersonBotAdapter extends BotAdapter {
       notificationBody => {
         notificationBody.changes.forEach(change => {
           if (change.type === "UPSERT" && !openConvs[change.result.convId]) {
-
             // new conversation for me
             openConvs[change.result.convId] = {};
 
@@ -289,33 +291,34 @@ export class LivePersonBotAdapter extends BotAdapter {
                 this.livePersonAgent.publishEvent({
                   dialogId: change.result.convId,
                   event: {
-                    type: 'ContentEvent',
-                    contentType: 'text/plain',
-                    message: 'FIRST TEST MESSAGE'
+                    type: "ContentEvent",
+                    contentType: "text/plain",
+                    message: "FIRST TEST MESSAGE"
                   }
                 });
                 this.livePersonAgent.publishEvent({
                   dialogId: change.result.convId,
                   event: {
-                    type: 'ContentEvent',
-                    contentType: 'text/plain',
-                    message: 'SECOND TEST MESSAGE'
+                    type: "ContentEvent",
+                    contentType: "text/plain",
+                    message: "SECOND TEST MESSAGE"
                   }
                 });
               }
             );
 
-
-
             var messageSequence = "";
-            if (change.result.lastContentEventNotification && change.result.lastContentEventNotification.sequence === 0) {
+            if (
+              change.result.lastContentEventNotification &&
+              change.result.lastContentEventNotification.sequence === 0
+            ) {
               messageSequence = "0";
             }
             var contentEvent = {
               dialogId: change.result.convId,
               sequence: messageSequence,
               message: "",
-              clientprops: "",
+              clientprops: ""
             };
 
             let event = {
@@ -323,8 +326,6 @@ export class LivePersonBotAdapter extends BotAdapter {
               consumerId
             };
             this.livePersonAgentListener.onConsumerConnect(this, event);
-
-
 
             this.livePersonAgent.subscribeMessagingEvents({
               dialogId: change.result.convId,
@@ -347,10 +348,9 @@ export class LivePersonBotAdapter extends BotAdapter {
         // Will be fixed in the next api version. So we have to check if this notification is handled by us.
 
         if (c.metadata) {
-          if(c.metadata.length) {
+          if (c.metadata.length) {
             // console.log('META => ', c.metadata);
           }
-
         }
         if (openConvs[c.dialogId]) {
           // add to respond list all content event not by me
@@ -396,9 +396,8 @@ export class LivePersonBotAdapter extends BotAdapter {
         this.livePersonAgent.getUserProfile(consumerId, (e, profile) => {
           let customerId: string = "";
           if (profile != undefined && typeof profile !== "string") {
-
             let ctmrInfo = profile.filter(pr => pr.type == "ctmrinfo")[0];
-            customerId = ctmrInfo.info.customerId || 'User';
+            customerId = ctmrInfo.info.customerId || "User";
           }
           let event = { ...contentEvent, customerId };
           // console.log('\x1b[32m',  `CustomerIdInfo => ${customerId}  ` ,'\x1b[0m');
@@ -409,18 +408,50 @@ export class LivePersonBotAdapter extends BotAdapter {
     });
 
     // Tracing
-    this.livePersonAgent.on("error", err => this.logErrorMessage(err));
-    this.livePersonAgent.on("closed", data => {
-      // For production environments ensure that you implement reconnect logic according to
-      // liveperson's retry policy guidelines: https://developers.liveperson.com/guides-retry-policy.html
-      console.log("LivePerson agent socket closed", data);
-      clearInterval(this.livePersonAgent._pingClock);
-      this.livePersonAgent._reconnect();
-
-    });
+    this.livePersonAgent.on("error", err => this.handleSocketError(err));
+    this.livePersonAgent.on("closed", data =>
+      this.handleSocketError(data, true)
+    );
   }
 
   protected logErrorMessage(error) {
     console.error(`LivePerson bot adapter error: ${error}`);
+  }
+
+  protected handleSocketError(err, isClosed) {
+    if (isClosed) {
+      console.log(
+        ":: SOCKET CLOSED - TRYING TO RECONNECT :: " + JSON.stringify(err)
+      );
+    } else {
+      console.log(
+        ":: SOCKET ERROR - TRYING TO RECONNECT :: " + JSON.stringify(err)
+      );
+    }
+
+    clearTimeout(this.resetReconnectionTimeoutId);
+
+    // Check Current Status
+    if (this.isReconnecting && isClosed) {
+      console.log("Reconnection in progress. Ignoring error.");
+      return;
+    }
+
+    clearTimeout(this.pingTimeoutId);
+
+    // Initiate Reconnection
+    this.isReconnecting = true;
+    const isUnauthError = /unauthorized|401/i.test(err.message);
+    this.reconnectionTimeoutId = setTimeout(() => {
+      // Regenegate token if there was an unauth error or bot failed to login first time
+      this.livePersonAgent.reconnect(
+        !isUnauthError && this.livePersonAgent.transport
+      );
+      if (this.reconnectionDelay < 10) {
+        this.reconnectionDelay += 2;
+      } else {
+        this.reconnectionDelay = 5;
+      }
+    }, this.reconnectionDelay);
   }
 }
