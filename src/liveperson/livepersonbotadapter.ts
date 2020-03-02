@@ -18,6 +18,10 @@ export class LivePersonBotAdapter extends BotAdapter {
   private livePersonAgentListener: LivePersonAgentListener = null;
   private _isConnected: boolean = false;
 
+  private reconnectInterval:number;
+  private reconnectAttempts: number;
+  private reconnectRatio: number;
+
   /**
    * Constructor.
    *
@@ -191,9 +195,9 @@ export class LivePersonBotAdapter extends BotAdapter {
    * - License: https://github.com/LivePersonInc/node-agent-sdk/blob/master/LICENSE
    */
   protected initializeLivePersonAgent() {
-    const reconnectInterval = 5; // in seconds
-    const reconnectAttempts = 35;
-    const reconnectRatio = 1.25; // ratio in the geometric series used to determine reconnect exponential back-off
+    this.reconnectInterval = 5;
+    this.reconnectAttempts = 35;
+    this.reconnectRatio = 1.25;
 
     if (!this.livePersonAgent) {
       console.error("No LivePerson agent to initialize");
@@ -203,6 +207,9 @@ export class LivePersonBotAdapter extends BotAdapter {
     let openConvs = {};
 
     this.livePersonAgent.on("connected", msg => {
+
+      clearTimeout(this.livePersonAgent._retryConnection);
+
       this._isConnected = true;
       console.log(
         "LivePerson agent connected:",
@@ -210,6 +217,7 @@ export class LivePersonBotAdapter extends BotAdapter {
         msg
       );
       this.livePersonAgent.setAgentState({ availability: "ONLINE" });
+
       this.livePersonAgent.subscribeExConversations(
         {
           agentIds: [this.livePersonAgent.agentId],
@@ -229,6 +237,7 @@ export class LivePersonBotAdapter extends BotAdapter {
 
           if (e) {
             console.error(e);
+            clearTimeout(this.livePersonAgent._retryConnection);
             this.livePersonAgent._reconnect();
           } else {
             console.log("\x1b[36m", "pong", "\x1b[0m");
@@ -236,24 +245,18 @@ export class LivePersonBotAdapter extends BotAdapter {
         });
       }, 30000);
 
+
+
       this.livePersonAgentListener.onConnected(this.livePersonAgent.agentId);
     });
 
-    this.livePersonAgent._reconnect = (
-      delay = reconnectInterval,
-      attempt = 1
-    ) => {
-      console.log("\x1b[33m", "Try to reconnect...", "\x1b[0m");
-
-      this.livePersonAgent._retryConnection = setTimeout(() => {
+    this.livePersonAgent._reconnect = (delay = this.reconnectInterval, attempt = 1) => {
+      this.livePersonAgent._retryConnection = setTimeout(()=>{
         this.livePersonAgent.reconnect();
-        if (++attempt <= reconnectAttempts) {
-          this.livePersonAgent._reconnect(delay * reconnectRatio, attempt);
-        }
-      }, delay * 1000);
-    };
+          if (++attempt <= this.reconnectAttempts) { this.livePersonAgent._reconnect(delay * this.reconnectRatio, attempt) }
+      }, delay * 1000)
+    }
 
-    // Accept any routingTask (==ring)
     this.livePersonAgent.on("routing.RoutingTaskNotification", body => {
       body.changes.forEach(c => {
         if (c.type === "UPSERT") {
@@ -409,8 +412,7 @@ export class LivePersonBotAdapter extends BotAdapter {
 
     // Tracing
     this.livePersonAgent.on("error", err => this.handleSocketError(err));
-    this.livePersonAgent.on("closed", data =>
-      this.handleSocketError(data, true)
+    this.livePersonAgent.on("closed", data => this.handleSocketError(data)
     );
   }
 
@@ -418,40 +420,23 @@ export class LivePersonBotAdapter extends BotAdapter {
     console.error(`LivePerson bot adapter error: ${error}`);
   }
 
-  protected handleSocketError(err, isClosed) {
-    if (isClosed) {
-      console.log(
-        ":: SOCKET CLOSED - TRYING TO RECONNECT :: " + JSON.stringify(err)
-      );
-    } else {
-      console.log(
-        ":: SOCKET ERROR - TRYING TO RECONNECT :: " + JSON.stringify(err)
-      );
-    }
+  protected handleSocketError(err: any, isClosed?: boolean) {
 
-    clearTimeout(this.resetReconnectionTimeoutId);
+    console.log("Error: ", JSON.stringify(err));
 
-    // Check Current Status
-    if (this.isReconnecting && isClosed) {
-      console.log("Reconnection in progress. Ignoring error.");
-      return;
-    }
+    if (err && err.code === 401) {
 
-    clearTimeout(this.pingTimeoutId);
-
-    // Initiate Reconnection
-    this.isReconnecting = true;
-    const isUnauthError = /unauthorized|401/i.test(err.message);
-    this.reconnectionTimeoutId = setTimeout(() => {
-      // Regenegate token if there was an unauth error or bot failed to login first time
-      this.livePersonAgent.reconnect(
-        !isUnauthError && this.livePersonAgent.transport
-      );
-      if (this.reconnectionDelay < 10) {
-        this.reconnectionDelay += 2;
+      if (isClosed) {
+        console.log(
+          ":: SOCKET CLOSED - TRYING TO RECONNECT"
+        );
       } else {
-        this.reconnectionDelay = 5;
+        console.log(
+          ":: SOCKET ERROR - TRYING TO RECONNECT"
+        );
       }
-    }, this.reconnectionDelay);
+
+      this.livePersonAgent._reconnect();
+    }
   }
 }
