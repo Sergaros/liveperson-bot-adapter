@@ -236,11 +236,12 @@ export class LivePersonBotAdapter extends BotAdapter {
           console.log("\x1b[36m", "ping", "\x1b[0m");
 
           if (e) {
-            console.error(e);
+            console.log('\x1b[31m', 'Error :: ' , JSON.stringify(e) , '\x1b[0m');
+
             clearTimeout(this.livePersonAgent._retryConnection);
             this.livePersonAgent._reconnect();
           } else {
-            console.log("\x1b[36m", "pong", "\x1b[0m");
+            console.log("\x1b[36m","pong : ", resp, "\x1b[0m");
           }
         });
       }, 30000);
@@ -420,21 +421,13 @@ export class LivePersonBotAdapter extends BotAdapter {
     console.error(`LivePerson bot adapter error: ${error}`);
   }
 
-  protected handleSocketError(err: any, isClosed?: boolean) {
+  protected handleSocketError(err: any) {
 
-    console.log("Error: ", JSON.stringify(err));
+    console.log('\x1b[31m', 'Error :: ' , JSON.stringify(err) , '\x1b[0m');
 
     if (err && err.code === 401) {
 
-      if (isClosed) {
-        console.log(
-          ":: SOCKET CLOSED - TRYING TO RECONNECT"
-        );
-      } else {
-        console.log(
-          ":: SOCKET ERROR - TRYING TO RECONNECT"
-        );
-      }
+      console.log(":: SOCKET ERR - TRYING TO RECONNECT");
 
       this.livePersonAgent._reconnect();
     }
