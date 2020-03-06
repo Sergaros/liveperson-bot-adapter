@@ -71,3 +71,7 @@ export const strCutter = (str: string, n: number = 20) => {
 
   return str.slice(0, n - 3) + "...";
 };
+
+export const exeptionsList = [
+  "We now offer messaging, which means you can correspond with us at your convenience during this conversation. Virtual Agent STAGE will be with you shortly.",
+];

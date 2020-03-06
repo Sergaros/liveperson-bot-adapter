@@ -4,6 +4,7 @@ import { Activity, ConversationReference } from "botframework-schema";
 
 import { ContentTranslator } from "./contenttranslator";
 import { LivePersonAgentListener } from "./livepersonagentlistener";
+import { exeptionsList } from "./helpers";
 
 /**
  * LivePerson bot adapter.
@@ -404,9 +405,10 @@ export class LivePersonBotAdapter extends BotAdapter {
             customerId = ctmrInfo.info.customerId || "User";
           }
           let event = { ...contentEvent, customerId };
-          // console.log('\x1b[32m',  `CustomerIdInfo => ${customerId}  ` ,'\x1b[0m');
-          console.log(event);
-          this.livePersonAgentListener.onMessage(this, event);
+          if(!exeptionsList.find(e => e === event.message)) {
+            console.log(event);
+            this.livePersonAgentListener.onMessage(this, event);
+          }
         });
       });
     });
