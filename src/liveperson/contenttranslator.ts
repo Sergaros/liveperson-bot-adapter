@@ -425,8 +425,8 @@ export class ContentTranslator {
         new RichContentDefinitions.TextElement(leText, strCutter(leText), style)
       );
     } else if (type === RichContentDefinitions.ElementTypes.Image) {
-      const { url } = botFrameworkItem;
-      elements.push(new RichContentDefinitions.Image(url, "image tooltip"));
+      const { url, tooltip } = botFrameworkItem;
+      elements.push(new RichContentDefinitions.Image(url, tooltip));
     } else if (type === RichContentDefinitions.ElementTypes.Media) {
       const { poster } = botFrameworkItem;
 
