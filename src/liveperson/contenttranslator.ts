@@ -102,7 +102,7 @@ export class ContentTranslator {
 
     //let turnContext = new TurnContext(livePersonBotAdapter, message);
     if(contentEvent.skillId) {
-      turnContext.skillId = contentEvent.skillId;
+      // turnContext.skillId = contentEvent.skillId;
     }
 
     return turnContext;

@@ -34,7 +34,6 @@ export class LivePersonBot {
    */
   public async onTurn(turnContext: TurnContext) {
     try {
-      console.log("SkillId - ", turnContext.skillId);
       const isViaLivePerson: boolean =
         turnContext.adapter instanceof LivePersonBotAdapter;
       const viaString: string = isViaLivePerson
