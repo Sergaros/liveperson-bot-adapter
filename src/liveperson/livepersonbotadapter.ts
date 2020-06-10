@@ -1,13 +1,11 @@
 
 import { Agent } from 'node-agent-sdk';
 import { BotAdapter, TurnContext } from 'botbuilder';
-import * as fs from "fs";
 import { Activity, ConversationReference } from 'botframework-schema';
 
 
 import { ContentTranslator } from "./contenttranslator";
 import { LivePersonAgentListener } from "./livepersonagentlistener";
-import { exeptionsList } from "./helpers";
 
 /**
  * LivePerson bot adapter.
@@ -412,15 +410,13 @@ export class LivePersonBotAdapter extends BotAdapter {
         });
         // Notify listener to process the received message and attach customerId from LivePerson to the message
         this.livePersonAgent.getUserProfile(consumerId, (e, profile) => {
-          let customerId: string = "";
+          let customerId: string = "defaultId";
           if (profile != undefined && typeof profile !== "string") {
             let ctmrInfo = profile.filter(pr => pr.type == "ctmrinfo")[0];
             customerId = ctmrInfo.info.customerId || "User";
           }
           let event = { ...contentEvent, customerId };
-          const messagesList = fs.readFileSync(`${__dirname}/exeptionsList.json`, "utf8");
-          const exeptionsList = JSON.parse(messagesList).exeptionsList;
-             if(!exeptionsList.find(e => e === event.message)) {
+             if(customerId !== "defaultId") {
                 this.livePersonAgentListener.onMessage(this, event);
            }
         });
