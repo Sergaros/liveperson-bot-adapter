@@ -72,10 +72,44 @@ export class Button extends ElementWithTooltip {
 }
 
 /**
+ * List Submit Button element class
+ *
+ * @member click determines behaviour of button
+ */
+export class SubmitButton extends Button {
+  readonly disabled: boolean;
+
+  constructor(
+    tooltip: string,
+    title: string,
+    buttonActions: Array<ButtonActions>,
+    metadata: any = null,
+    disabled: boolean = false
+  ) {
+    super(tooltip, title, buttonActions, metadata);
+    this.type = "submitButton";
+    this.disabled = disabled;
+  }
+}
+
+/**
  * Base ButtonActions class
  */
 export class ButtonActions {
   protected type: string;
+}
+
+/**
+ * SubmitButtonAction - submit button button action
+ */
+export class SubmitButtonAction extends ButtonActions {
+  submit: boolean;
+
+  constructor() {
+    super();
+    this.type = "submitAsText"
+    this.submit = true;
+  }
 }
 
 /**
@@ -116,6 +150,20 @@ export interface ITextElementStyle {
   "background-color"?: string;
   bold?: boolean;
   italic?: boolean;
+}
+
+/**
+ * Simple Text element
+ *
+ */
+export class SimpleTextElement extends Element {
+  readonly text: string;
+
+  constructor(text: string) {
+    super();
+    this.type = "text";
+    this.text = text;
+  }
 }
 
 /**
@@ -193,10 +241,39 @@ export class QuickReplies extends Element {
 export class Container extends Element {
   elements: Array<Element>;
 
-  constructor(containerType: "vertical" | "horizontal") {
+  constructor(containerType: "vertical" | "horizontal" | "list" | "sectionList" | "buttonList" | "section" | "checklist") {
     super();
     this.type = containerType;
     this.elements = new Array<Element>();
+  }
+}
+
+export class Section extends Container {
+  elements: Array<Element>;
+  sectionID: string;
+
+  constructor(sectionID) {
+    super("section");
+    this.sectionID = sectionID;
+  }
+}
+
+export class CheckBox extends Element{
+  readonly type: string;
+  readonly text: string;
+  readonly tooltip: string;
+  readonly click: any;
+
+  constructor(text: string, value: string, desc: string){
+    super();
+    this.type = "checkbox";
+    this.text = text;
+    this.tooltip = desc;
+
+    this.click = {
+      actions: [{type: "checked", "publishText": text}],
+      metadata: [{ type: "ExternalId", id: value }]
+    };
   }
 }
 
@@ -208,5 +285,7 @@ export enum ElementTypes {
   TextBlock = "TextBlock",
   ImageSet = "ImageSet",
   Image = "Image",
-  Media = "Media"
+  Media = "Media",
+  MultiSelect = "Input.ChoiceSet",
+  ActionSet = "ActionSet",
 }

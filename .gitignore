@@ -62,3 +62,7 @@ typings/
 
 #dist folder with js files
 dist
+
+run.sh
+
+.vscode
