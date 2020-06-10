@@ -67,10 +67,10 @@ export class ContentTranslator {
       text: contentEvent.message,
       type: "message",
       // @ts-ignore
-      multiSelectData: contentEvent.metadata
+      multiSelectData: contentEvent.metadata,
     });
 
-    //let turnContext = new TurnContext(livePersonBotAdapter, message);
+
     return turnContext;
   }
 
@@ -99,6 +99,11 @@ export class ContentTranslator {
       text: contentEvent.message,
       type: "message"
     });
+
+    //let turnContext = new TurnContext(livePersonBotAdapter, message);
+    if(contentEvent.skillId) {
+      turnContext.skillId = contentEvent.skillId;
+    }
 
     return turnContext;
   }
